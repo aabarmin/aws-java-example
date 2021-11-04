@@ -53,9 +53,25 @@ Content-Type: application/json
 ```
 
 As you may see, the request contains an object where keys are disciplines, values - number of 
-questions to request. When the request is parsed, the main challenges provider goes to the service
+questions to request. When the request is parsed, the main challenges' provider goes to the service
 discovery and resolves instances which can provide challenges for the given discipline. As soon as
 instances are resolved, the target instance is selected randomly and asked to provide challenges 
 for it. When all the services are requested, results are combined and returned. 
 
+## Building and running locally
+
+Execute the following command to build:
+
+```shell
+./gradlew clean build
+```
+
+You may run apps as Spring Boot apps using:
+
+```shell
+java -jar application.jar
+```
+
 # Going to AWS
+
+TBD
