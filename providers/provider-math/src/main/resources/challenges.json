@@ -1,0 +1,23 @@
+[
+  {
+    "question": "What is 2+2",
+    "answers": [
+      {
+        "answer": "4",
+        "correct": true
+      },
+      {
+        "answer": "5",
+        "correct": false
+      },
+      {
+        "answer": "10",
+        "correct": false
+      },
+      {
+        "answer": "-1",
+        "correct": false
+      }
+    ]
+  }
+]
