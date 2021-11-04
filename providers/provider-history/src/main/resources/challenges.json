@@ -1,0 +1,23 @@
+[
+  {
+    "question": "When did Johaness Gutenberg invent the printing press?",
+    "answers": [
+      {
+        "answer": "1440",
+        "correct": true
+      },
+      {
+        "answer": "1550",
+        "correct": false
+      },
+      {
+        "answer": "1660",
+        "correct": false
+      },
+      {
+        "answer": "1330",
+        "correct": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: provider-math
+
+challenges:
+  classpath:
+    resource: classpath:/challenges.json
+
+server:
+  port: 8081
+
+eureka:
+  client:
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8888/eureka/

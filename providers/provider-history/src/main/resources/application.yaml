@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: provider-history
+
+challenges:
+  classpath:
+    resource: classpath:/challenges.json
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://localhost:8888/eureka/
