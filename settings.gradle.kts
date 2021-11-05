@@ -6,4 +6,4 @@ include("providers:provider-base")
 include("providers:provider-math")
 include("providers:provider-history")
 
-include("app-challenges-provider")
+include("challenges-provider")
