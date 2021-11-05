@@ -1,0 +1,28 @@
+[
+  {
+    "question": "Test question",
+    "answers": [
+      {
+        "answer": "Answer 1",
+        "correct": true
+      },
+      {
+        "answer": "Answer 2",
+        "correct": false
+      }
+    ]
+  },
+  {
+    "question": "Another question",
+    "answer": [
+      {
+        "answer": "Answer 1",
+        "correct": true
+      },
+      {
+        "answer": "Answer 2",
+        "correct": false
+      }
+    ]
+  }
+]

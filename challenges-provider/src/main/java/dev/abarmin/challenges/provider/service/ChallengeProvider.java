@@ -1,10 +1,10 @@
 package dev.abarmin.challenges.provider.service;
 
+import com.netflix.discovery.converters.Auto;
 import dev.abarmin.challenges.provider.domain.Challenge;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -19,13 +19,16 @@ public class ChallengeProvider {
   @Autowired
   private RestTemplate restTemplate;
 
+  @Autowired
+  private InstanceSelector selector;
+
   public Collection<Challenge> provide(final Map<String, Integer> request) {
     final Collection<Challenge> challenges = new ArrayList<>();
 
     for (Map.Entry<String, Integer> entry : request.entrySet()) {
       // getting a service which provides a given science
       final List<ServiceInstance> instances = discoveryClient.getInstances(getServiceName(entry.getKey()));
-      final ServiceInstance instance = selectRandom(instances);
+      final ServiceInstance instance = selector.select(instances);
 
       // building an url to request challenges
       final String url = buildUrl(instance);
@@ -51,9 +54,5 @@ public class ChallengeProvider {
         instance.getHost(),
         instance.getPort()
     );
-  }
-
-  private ServiceInstance selectRandom(final List<ServiceInstance> instances) {
-    return instances.get(0);
   }
 }

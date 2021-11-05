@@ -3,8 +3,7 @@ package dev.abarmin.provider.base.provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.abarmin.provider.base.domain.Challenge;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +43,20 @@ public class ChallengesClasspathProvider implements ChallengesProvider {
           number
       ));
     }
-    return challenges.subList(0, number);
+    // it's necessary to generate a random set of questions
+    final Set<Integer> used = new HashSet<>();
+    final List<Challenge> result = new ArrayList<>();
+
+    final Random random = new Random();
+    while (used.size() < number) {
+      final int generatedIndex = random.nextInt(challenges.size());
+      if (used.contains(generatedIndex)) {
+        continue;
+      }
+      used.add(generatedIndex);
+      result.add(challenges.get(generatedIndex));
+    }
+
+    return result;
   }
 }
