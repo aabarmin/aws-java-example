@@ -1,6 +1,6 @@
 rootProject.name = "aws-java-example"
 
-include("app-service-discovery")
+include("services:discovery-server")
 
 include("providers:provider-base")
 include("providers:provider-math")

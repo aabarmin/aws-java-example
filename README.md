@@ -4,7 +4,7 @@ This repository presents a tiny application and a collection of scripts which
 demonstrate what ways are available to deploy the Java app into AWS. 
 
 There the following projects available:
-* `app-service-discovery` - Spring Boot app with Eureka - service-discovery server.
+* `services\discovery-server` - Spring Boot app with Eureka - service-discovery server.
 * `app-challenges-provider` - the main app which goes to other providers and requests the 
   challenges for the given discipline. 
 * `providers\provider-base` - Spring Boot starter which kicks-off all the necessary classes to 
