@@ -1,12 +1,43 @@
 version: 0.2
+
 phases:
   install:
     commands:
       - rpm --import https://yum.corretto.aws/corretto.key
       - curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo
       - yum install -y java-17-amazon-corretto-devel
-      - alternatives set java /usr/lib/jvm/java-17-amazon-corretto/bin/java
-      - alternatives set javac /usr/lib/jvm/java-17-amazon-corretto/bin/javac
+      - alternatives --set java /usr/lib/jvm/java-17-amazon-corretto/bin/java
+      - alternatives --set javac /usr/lib/jvm/java-17-amazon-corretto/bin/javac
+      - export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto/
+      - export GRADLE_OPTS=-Dorg.gradle.daemon=false
   build:
     commands:
-      - java -version
+      - ./gradlew clean build
+
+#reports:
+#  aws-java-example:
+#    files:
+#      - providers/provider-base/build/test-results/tests/*.xml
+#    file-format: JUNITXML
+
+artifacts:
+  files:
+    - challenges-provider/build/libs/challenges-provider.jar
+  name: builds/$CODEBUILD_BUILD_NUMBER/challenges-provider.jar
+  discard-paths: yes
+  secondary-artifacts:
+    provider-history:
+      files:
+        - providers/provider-history/build/libs/provider-history.jar
+      name: builds/$CODEBUILD_BUILD_NUMBER/provider-history.jar
+      discard-paths: yes
+    provider-math:
+      files:
+        - providers/provider-math/build/libs/provider-math.jar
+      name: builds/$CODEBUILD_BUILD_NUMBER/provider-math.jar
+      discard-paths: yes
+    discovery-server:
+      files:
+        - services/discovery-server/build/libs/discovery-server.jar
+      name: builds/$CODEBUILD_BUILD_NUMBER/discovery-server.jar
+      discard-paths: yes

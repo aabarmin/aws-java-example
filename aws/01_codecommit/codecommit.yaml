@@ -5,14 +5,30 @@ Parameters:
     Description: Name of the repository to create
     Type: String
     Default: aws-java-example
+  BucketName:
+    Description: Name of S3 bucket to store generated artefacts
+    Type: String
+    Default: aws-java-example-artefacts
+
 Resources:
+  #######################################
+  ### CodeCommit Repository
+  #######################################
   MainRepository:
     Type: AWS::CodeCommit::Repository
     Properties:
       RepositoryName: !Ref RepositoryName
       RepositoryDescription: Repository to store sources
 
+  #######################################
+  ### S3 Bucket for artefacts
+  #######################################
+  ArtefactsStorage:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+
 # What is required:
-# 1. CodeCommit repository
-# 2. S3 bucket to store jar files
+# [done] 1. CodeCommit repository
+# [done] 2. S3 bucket to store jar files
 # 3. CodeBuild build to run the build
