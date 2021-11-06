@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template that creates CodeCommit repos for this project
+Parameters:
+  RepositoryName:
+    Description: Name of the repository to create
+    Type: String
+    Default: aws-java-example
+Resources:
+  MainRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      RepositoryDescription: Repository to store sources
+
+# What is required:
+# 1. CodeCommit repository
+# 2. S3 bucket to store jar files
+# 3. CodeBuild build to run the build

@@ -74,4 +74,4 @@ java -jar application.jar
 
 # Going to AWS
 
-TBD
+See examples in `aws` folder. 

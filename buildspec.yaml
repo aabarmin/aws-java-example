@@ -1,0 +1,12 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - rpm --import https://yum.corretto.aws/corretto.key
+      - curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo
+      - yum install -y java-17-amazon-corretto-devel
+      - alternatives set java /usr/lib/jvm/java-17-amazon-corretto/bin/java
+      - alternatives set javac /usr/lib/jvm/java-17-amazon-corretto/bin/javac
+  build:
+    commands:
+      - java -version
