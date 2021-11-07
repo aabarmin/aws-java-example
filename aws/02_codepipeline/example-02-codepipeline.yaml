@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template that creates CodeCommit repos for this project
+Parameters:
+  RepositoryName:
+    Description: Name of the repository to create
+    Type: String
+    Default: aws-java-example
+  BucketName:
+    Description: Name of S3 bucket to store generated artefacts
+    Type: String
+    Default: aws-java-example-artefacts
+
+Resources:
+  #######################################
+  ### CodeCommit Repository
+  #######################################
+  MainRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Ref RepositoryName
+      RepositoryDescription: Repository to store sources
+
+  #######################################
+  ### S3 Bucket for artefacts
+  #######################################
+  ArtifactsStorage:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      VersioningConfiguration:
+        Status: Enabled
+
+  #######################################
+  ### Role to access CodeCommit and S3
+  #######################################
+  ArifactStorageAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Grants access to S3 and CodeCommit
+      RoleName: codebuild_access_role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:Create*"
+                  - "logs:Put*"
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - "s3:Put*"
+                  - "s3:Get*"
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - "codecommit:Git*"
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - "codebuild:Create*"
+                  - "codebuild:Update*"
+                  - "codebuild:Batch*"
+                Resource: '*'
+
+  #######################################
+  ### CodeBuild project
+  #######################################
+  MainProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join
+        - ''
+        - - !Ref RepositoryName
+          - '-build-project'
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Description: Project to build main sources
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        Type: LINUX_CONTAINER
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: !Join
+            - ''
+            - - !Ref RepositoryName
+              - '-logs'
+      ServiceRole: !GetAtt ArifactStorageAccessRole.Arn
+      TimeoutInMinutes: 5
+      Source:
+        Type: CODECOMMIT
+        GitCloneDepth: 1
+        Location: !GetAtt MainRepository.CloneUrlHttp
