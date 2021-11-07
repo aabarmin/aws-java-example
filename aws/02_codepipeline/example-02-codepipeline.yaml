@@ -92,7 +92,7 @@ Resources:
         EnvironmentVariables:
           - Name: BUCKET_NAME
             Type: PLAINTEXT
-            Value: !Ref RepositoryName
+            Value: !Ref BucketName
       LogsConfig:
         CloudWatchLogs:
           Status: ENABLED
