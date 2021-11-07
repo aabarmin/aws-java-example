@@ -1,5 +1,9 @@
 version: 0.2
 
+env:
+  variables:
+    BUCKET_NAME: aws-java-example-artefacts
+
 phases:
   install:
     commands:
@@ -10,9 +14,18 @@ phases:
       - alternatives --set javac /usr/lib/jvm/java-17-amazon-corretto/bin/javac
       - export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto/
       - export GRADLE_OPTS=-Dorg.gradle.daemon=false
+
   build:
     commands:
       - ./gradlew clean build
+
+  post_build:
+    commands:
+      - aws s3 cp challenges-provider/build/libs/challenges-provider.jar s3://$BUCKET_NAME/latest/challenges-provider.jar
+      - aws s3 cp services/discovery-server/build/libs/discovery-server.jar s3://$BUCKET_NAME/latest/discovery-server.jar
+      - aws s3 cp providers/provider-history/build/libs/provider-history.jar s3://$BUCKET_NAME/latest/provider-history.jar
+      - aws s3 cp providers/provider-math/build/libs/provider-math.jar s3://$BUCKET_NAME/latest/provider-math.jar
+      - aws s3 cp aws/00_scripts/app-run.sh s3://$BUCKET_NAME/latest/app-run.sh
 
 #reports:
 #  aws-java-example:
