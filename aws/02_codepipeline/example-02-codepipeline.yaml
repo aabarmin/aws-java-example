@@ -89,6 +89,10 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
         Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: BUCKET_NAME
+            Type: PLAINTEXT
+            Value: !Ref RepositoryName
       LogsConfig:
         CloudWatchLogs:
           Status: ENABLED
@@ -102,3 +106,9 @@ Resources:
         Type: CODECOMMIT
         GitCloneDepth: 1
         Location: !GetAtt MainRepository.CloneUrlHttp
+      SourceVersion: refs/heads/main
+
+Outputs:
+  GitRepositoryPath:
+    Description: URL of the repository, remote
+    Value: !GetAtt MainRepository.CloneUrlHttp
