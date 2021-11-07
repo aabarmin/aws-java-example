@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template which creates VPC and minimal amount of other resources
+Parameters:
+  VPCName:
+    Description: Name of VPC to create
+    Type: String
+    Default: Example VPC
+  VPCRegion:
+    Description: Region where VPC and other resources will be deployed
+    Type: String
+    Default: us-east-1
+  EC2InstanceTemplateId:
+    Description: ID of AMI
+    Type: String
+    Default: ami-02e136e904f3da870
+  EC2InstanceType:
+    Description: Size of EC2 instance to create
+    Type: String
+    Default: t2.micro
+  EC2KeyPairName:
+    Description: EC2 SSH key pair name
+    Type: String
+    Default: abarmin-kp
+  UserIP:
+    Description: CIDR of the user IP, will get access via SSH and HTTP
+    Type: String
+    Default: 0.0.0.0/0
+  ArtifactsBucketName:
+    Description: Name of the bucket that will store artifacts
+    Type: String
+    Default: aws-java-example-artefacts
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: 10.10.0.0/16
+    PublicA:
+      CIDR: 10.10.1.0/24
+      AZ: a
+      Name: public_a
+
+Resources:
+  ###############################################
+  ### VPC
+  ###############################################
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Ref "VPCName"
+
+  ###############################################
+  ### Public Subnets
+  ###############################################
+  PublicSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !FindInMap ['SubnetConfig', 'PublicA', 'CIDR']
+      AvailabilityZone: !Join [ '', [ !Ref 'VPCRegion', !FindInMap ['SubnetConfig', 'PublicA', 'AZ'] ]]
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !FindInMap ['SubnetConfig', 'PublicA', 'Name']
+        - Key: Network
+          Value: Public
+
+  ###############################################
+  ### Internet Gateway
+  ###############################################
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: cloudx-igw
+        - Key: Network
+          Value: Public
+  InternetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  ###############################################
+  ### Routing Tables
+  ###############################################
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: public_rt
+        - Key: Network
+          Value: Public
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation0:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  ###############################################
+  ### Security Groups
+  ###############################################
+  SecurityGroupEC2Pool:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ec2_pool
+      GroupDescription: allows access for ec2 instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref UserIP
+
+  ###############################################
+  ### Bucket for artifacts
+  ###############################################
+  ArtifactsStorage:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ArtifactsBucketName
