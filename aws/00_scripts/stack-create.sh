@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Getting name of the stack
+FILE_NAME=$1
+if [ -z "${FILE_NAME}" ]; then
+  echo "Stack file is not provided, exiting"
+  echo "./stack-create.sh stack-file.yaml"
+  exit
+fi
+
+STACK_NAME=$(echo $1 | awk '{print(substr($1, 1, index($1, ".") - 1))}')
+
+echo "Checking stack ${STACK_NAME}"
+
+STACK_CREATED=$(aws cloudformation list-stacks \
+  --query 'StackSummaries[?StackName==`'${STACK_NAME}'`].CreationTime' \
+  --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE UPDATE_ROLLBACK_COMPLETE \
+  --output text)
+
+if [ -z ${STACK_CREATED} ]; then
+  echo "This is a new stack, creating"
+  aws cloudformation create-stack --stack-name $STACK_NAME \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-body file://$FILE_NAME
+else
+  echo "This stack already exists, updating"
+  aws cloudformation update-stack --stack-name $STACK_NAME \
+    --capabilities CAPABILITY_NAMED_IAM \
+    --template-body file://$FILE_NAME
+fi

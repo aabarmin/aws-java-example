@@ -16,7 +16,7 @@ Parameters:
   EC2InstanceType:
     Description: Size of EC2 instance to create
     Type: String
-    Default: t2.micro
+    Default: t3a.medium
   EC2KeyPairName:
     Description: EC2 SSH key pair name
     Type: String
@@ -117,16 +117,28 @@ Resources:
   ###############################################
   ### Security Groups
   ###############################################
-  SecurityGroupEC2Pool:
+  SecurityGroupEC2PoolSSHAccess:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: ec2_pool
+      GroupName: ec2_pool_ssh
       GroupDescription: allows access for ec2 instances
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
+          CidrIp: !Ref UserIP
+
+  SecurityGroupEC2PoolWebAccess:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ec2_pool_web
+      GroupDescription: allows access for ec2 instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
           CidrIp: !Ref UserIP
 
   ###############################################
@@ -136,3 +148,92 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref ArtifactsBucketName
+      VersioningConfiguration:
+        Status: Enabled
+
+  ###############################################
+  ### IAM role to get access to S3
+  ###############################################
+  ArifactStorageAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Grants access to S3 to download artifacts
+      RoleName: s3_access
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - ecs.amazonaws.com
+                - ecs-tasks.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:Get*"
+                  - "s3:List*"
+                  - "s3:Head"
+                  - "s3-object-lambda:Get*"
+                  - "s3-object-lambda:List*"
+                Resource: !Join
+                  - ''
+                  - - !GetAtt ArtifactsStorage.Arn
+                    - '/*'
+
+  ArtifactStorageAccessRoleInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: example_app_profile
+      Path: "/"
+      Roles:
+        - !Ref ArifactStorageAccessRole
+
+  ###############################################
+  ### Launch template for EC2 instances
+  ###############################################
+  ChallengesAppLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: challenges-app-launch-template
+      LaunchTemplateData:
+        ImageId: !Ref EC2InstanceTemplateId
+        InstanceType: !Ref EC2InstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt ArtifactStorageAccessRoleInstanceProfile.Arn
+        KeyName: !Ref EC2KeyPairName
+        SecurityGroupIds:
+          - !GetAtt SecurityGroupEC2PoolSSHAccess.GroupId
+          - !GetAtt SecurityGroupEC2PoolWebAccess.GroupId
+        UserData:
+          Fn::Base64:
+            !Sub
+              - |
+                #!/bin/bash -xe
+                cd /opt
+
+                # Installing Corretto JDK 17
+                rpm --import https://yum.corretto.aws/corretto.key
+                curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo
+                yum install -y java-17-amazon-corretto-devel
+                alternatives --set java /usr/lib/jvm/java-17-amazon-corretto/bin/java
+                alternatives --set javac /usr/lib/jvm/java-17-amazon-corretto/bin/javac
+
+                # Downloading latest versions of apps from S3
+                aws s3 cp s3://${S3_BUCKET_NAME}/latest/challenges-provider.jar challenges-provider.jar
+                aws s3 cp s3://${S3_BUCKET_NAME}/latest/discovery-server.jar discovery-server.jar
+                aws s3 cp s3://${S3_BUCKET_NAME}/latest/provider-history.jar provider-history.jar
+                aws s3 cp s3://${S3_BUCKET_NAME}/latest/provider-math.jar provider-math.jar
+
+                # Downloading runner script
+                aws s3 cp s3://${S3_BUCKET_NAME}/latest/app-run.sh app-run.sh
+                chmod +x app-run.sh
+
+                # Running all
+                ./app-run.sh
+              - S3_BUCKET_NAME: !Ref ArtifactsBucketName
