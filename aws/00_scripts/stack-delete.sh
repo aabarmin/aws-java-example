@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash
 
 # Getting name of the stack
 FILE_NAME=$1
@@ -13,8 +13,8 @@ STACK_NAME=$(echo $1 | awk '{print(substr($1, 1, index($1, ".") - 1))}')
 echo "Checking stack ${STACK_NAME}"
 
 STACK_CREATED=$(aws cloudformation list-stacks \
-  --query "StackSummaries[?StackName=='${STACK_NAME}'].CreationTime" \
-  --stack-status-filter CREATE_COMPLETE \
+  --query 'StackSummaries[?StackName==`'${STACK_NAME}'`].CreationTime' \
+  --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE UPDATE_ROLLBACK_COMPLETE \
   --output text)
 
 if [ -z "${STACK_CREATED}" ]; then
