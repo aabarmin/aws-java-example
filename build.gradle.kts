@@ -32,7 +32,7 @@ subprojects {
     }
 
     tasks.withType<JavaCompile> {
-        sourceCompatibility = "16"
+        sourceCompatibility = "17"
     }
 
     tasks.withType<Test> {

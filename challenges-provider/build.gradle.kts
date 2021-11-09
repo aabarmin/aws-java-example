@@ -1,5 +1,11 @@
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+
 plugins {
     id("dev.abarmin.spring-cloud-conventions")
+}
+
+tasks.withType<BootBuildImage> {
+    imageName = "application/challenges-provider"
 }
 
 dependencies {

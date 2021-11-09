@@ -15,3 +15,7 @@ tasks.withType<Jar> {
 tasks.withType<BootJar> {
     enabled = false
 }
+
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootBuildImage> {
+    enabled = false
+}
