@@ -9,4 +9,4 @@ eureka:
   client:
     register-with-eureka: true
     service-url:
-      defaultZone: http://localhost:8888/eureka/
+      defaultZone: ${DISCOVERY_URL:http://localhost:8888/eureka/}

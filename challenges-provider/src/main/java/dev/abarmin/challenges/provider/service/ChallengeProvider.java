@@ -5,12 +5,14 @@ import dev.abarmin.challenges.provider.domain.Challenge;
 
 import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Service
 public class ChallengeProvider {
   @Autowired
@@ -28,10 +30,13 @@ public class ChallengeProvider {
     for (Map.Entry<String, Integer> entry : request.entrySet()) {
       // getting a service which provides a given science
       final List<ServiceInstance> instances = discoveryClient.getInstances(getServiceName(entry.getKey()));
+      log.info("{} instances found", instances.size());
+
       final ServiceInstance instance = selector.select(instances);
 
       // building an url to request challenges
       final String url = buildUrl(instance);
+      log.info("Sending request to {}", url);
 
       // requesting data
       final ProviderRequest providerRequest = new ProviderRequest(entry.getKey(), entry.getValue());
@@ -47,12 +52,8 @@ public class ChallengeProvider {
   private String getServiceName(final String discipline) {
     return "provider-" + discipline;
   }
+
   private String buildUrl(final ServiceInstance instance) {
-    return String.format(
-        "%s://%s:%s/provide",
-        instance.getScheme(),
-        instance.getHost(),
-        instance.getPort()
-    );
+    return instance.getUri().toString() + "/provide";
   }
 }
