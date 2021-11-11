@@ -1,0 +1,1 @@
+../../../00_scripts/stack-delete.sh

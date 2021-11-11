@@ -1,0 +1,28 @@
+{
+  "family": "app-challenges-provider",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [{
+    "name": "app-challenges-provider-container",
+    "image": "835357144480.dkr.ecr.us-east-1.amazonaws.com/app-challenges-provider:latest",
+    "portMappings": [{
+      "containerPort": 8080,
+      "hostPort": 8080,
+      "protocol": "tcp"
+    }],
+    "essential": true,
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-create-group": "true",
+        "awslogs-group": "/ecs/app-challenges-provider",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}

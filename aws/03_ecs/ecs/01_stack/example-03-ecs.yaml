@@ -1,0 +1,312 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template which creates VPC and minimal amount of other resources
+Parameters:
+  VPCName:
+    Description: Name of VPC to create
+    Type: String
+    Default: Example VPC
+  VPCRegion:
+    Description: Region where VPC and other resources will be deployed
+    Type: String
+    Default: us-east-1
+  UserIP:
+    Description: CIDR of the user IP, will get access via SSH and HTTP
+    Type: String
+    Default: 0.0.0.0/0
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: 10.10.0.0/16
+    PublicA:
+      CIDR: 10.10.1.0/24
+      AZ: a
+      Name: public_a
+    PublicB:
+      CIDR: 10.10.2.0/24
+      AZ: b
+      Name: public_b
+
+Resources:
+  ###############################################
+  ### VPC
+  ###############################################
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      Tags:
+        - Key: Name
+          Value: !Ref "VPCName"
+
+  ###############################################
+  ### Public Subnets
+  ###############################################
+  PublicSubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !FindInMap ['SubnetConfig', 'PublicA', 'CIDR']
+      AvailabilityZone: !Join [ '', [ !Ref 'VPCRegion', !FindInMap ['SubnetConfig', 'PublicA', 'AZ'] ]]
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !FindInMap ['SubnetConfig', 'PublicA', 'Name']
+        - Key: Network
+          Value: Public
+
+  PublicSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: !FindInMap ['SubnetConfig', 'PublicB', 'CIDR']
+      AvailabilityZone: !Join [ '', [ !Ref 'VPCRegion', !FindInMap ['SubnetConfig', 'PublicB', 'AZ'] ]]
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !FindInMap ['SubnetConfig', 'PublicB', 'Name']
+        - Key: Network
+          Value: Public
+
+  ###############################################
+  ### Internet Gateway
+  ###############################################
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: cloudx-igw
+        - Key: Network
+          Value: Public
+
+  InternetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  ###############################################
+  ### Routing Tables
+  ###############################################
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: public_rt
+        - Key: Network
+          Value: Public
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation0:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetRouteTableAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  ###############################################
+  ### Security Groups
+  ###############################################
+  FargateGroupEC2PoolSSHAccess:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: fargate_pool_ssh
+      GroupDescription: allows access for ec2 instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref UserIP
+
+  FargateGroupEC2PoolWebAccess:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: fargate2_pool_web
+      GroupDescription: allows access for ec2 instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8888
+          ToPort: 8888
+          CidrIp: !Ref UserIP
+
+  FargateSecurityGroupALB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: alb
+      GroupDescription: defines access to alb
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref UserIP
+
+  ###############################################
+  ### IAM role to get access to S3
+  ###############################################
+  FargateAppIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Access from Fargete instances to services
+      RoleName: fargate_role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+                - ecs.amazonaws.com
+                - ecs-tasks.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'ec2:Describe*'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'ecr:GetAuthorizationToken'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'ecr:BatchCheckLayerAvailability'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'ecr:GetDownloadUrlForLayer'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'ecr:BatchGetImage'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'logs:CreateLogStream'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'logs:PutLogEvents'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'logs:CreateLogGroup'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'ssm:GetParameter*'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'secretsmanager:GetSecretValue'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'kms:Decrypt'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'elasticfilesystem:DescribeFileSystems'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'elasticfilesystem:ClientMount'
+                Resource: '*'
+              - Effect: Allow
+                Action: 'elasticfilesystem:ClientWrite'
+                Resource: '*'
+
+  FargateAppIAMRoleInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: ghost_app
+      Path: "/"
+      Roles:
+        - !Ref FargateAppIAMRole
+
+  ###############################################
+  ### ALB
+  ###############################################
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: cloudx-resources-load-balancer
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref FargateSecurityGroupALB
+      Subnets:
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetB
+
+  ApplicationLoadBalancerHttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      LoadBalancerArn:
+        Ref: ApplicationLoadBalancer
+      DefaultActions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref ApplicationLoadBalancerFargateTargetGroup
+                Weight: 1
+
+  ApplicationLoadBalancerFargateTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      Name: ghost-fargate-target-group
+      Port: 8888
+      Protocol: HTTP
+      TargetType: ip
+      VpcId:
+        Ref: VPC
+
+  ###############################################
+  ### Private ECRs
+  ###############################################
+  AppChallengesProviderPrivateECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: app-challenges-provider
+
+  AppProviderMathPrivateECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: app-provider-math
+
+  AppProviderHistoryPrivateECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: app-provider-history
+
+  ###############################################
+  ### ECS Cluster
+  ###############################################
+  ChallengesApplicationECS:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: challenges-application
+      CapacityProviders:
+        - FARGATE
+
+Outputs:
+  AccessUrl:
+    Description: ALB address to access the application
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
