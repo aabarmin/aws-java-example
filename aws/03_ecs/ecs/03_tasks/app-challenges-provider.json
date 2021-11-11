@@ -9,6 +9,16 @@
       "hostPort": 8080,
       "protocol": "tcp"
     }],
+    "environment": [
+      {
+        "name": "PROVIDER_TYPE",
+        "value": "docker"
+      },
+      {
+        "name": "EUREKA_CLIENT_ENABLED",
+        "value": "false"
+      }
+    ],
     "essential": true,
     "logConfiguration": {
       "logDriver": "awslogs",
