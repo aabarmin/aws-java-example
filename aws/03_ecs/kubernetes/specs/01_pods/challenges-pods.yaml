@@ -1,53 +1,80 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: app-challenges-provider
+  name: challenges-provider
   namespace: challenges-demo
 spec:
-  containers:
-    - name: app-challenges-provider-container
-      image: application/challenges-provider:latest
-      imagePullPolicy: Never
-      ports:
-        - containerPort: 8080
-      env:
-        - name: PROVIDER_TYPE
-          value: "docker"
-        - name: EUREKA_CLIENT_ENABLED
-          value: "false"
+  replicas: 1
+  selector:
+    matchLabels:
+      name: frontend
+  template:
+    metadata:
+      labels:
+        name: frontend
+    spec:
+      containers:
+        - name: app-challenges-provider-container
+          image: application/challenges-provider:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PROVIDER_TYPE
+              value: "docker"
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: app-provider-math
+  name: backend-math
   namespace: challenges-demo
 spec:
-  containers:
-    - name: app-challenges-provider-math-container
-      image: application/provider-math:latest
-      imagePullPolicy: Never
-      ports:
-        - containerPort: 8080
-      env:
-        - name: EUREKA_CLIENT_ENABLED
-          value: "false"
-        - name: SERVER_PORT
-          value: "8080"
+  replicas: 1
+  selector:
+    matchLabels:
+      name: backend-math
+  template:
+    metadata:
+      labels:
+        name: backend-math
+    spec:
+      containers:
+        - name: app-challenges-provider-math-container
+          image: application/provider-math:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+            - name: SERVER_PORT
+              value: "8080"
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: app-provider-history
+  name: backend-history
   namespace: challenges-demo
 spec:
-  containers:
-    - name: app-challenges-provider-history-container
-      image: application/provider-history:latest
-      imagePullPolicy: Never
-      ports:
-        - containerPort: 8080
-      env:
-        - name: EUREKA_CLIENT_ENABLED
-          value: "false"
-        - name: SERVER_PORT
-          value: "8080"
+  replicas: 1
+  selector:
+    matchLabels:
+      name: backend-history
+  template:
+    metadata:
+      labels:
+        name: backend-history
+    spec:
+      containers:
+        - name: app-challenges-provider-history-container
+          image: application/provider-history:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+            - name: SERVER_PORT
+              value: "8080"

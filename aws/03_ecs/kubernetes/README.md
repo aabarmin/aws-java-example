@@ -15,3 +15,19 @@ If not exists, create using the following command:
 ```shell
 ~ kubectl create namespace challenges-demo
 ```
+
+---
+
+Enable port-forwarding to the main app (if something went wrong):
+
+```shell
+~ kubectl -n challenges-demo port-forward deployment/challenges-provider 8080:8080
+```
+
+Should see something like: 
+
+```shell
+Forwarding from 127.0.0.1:8080 -> 8080
+Forwarding from [::1]:8080 -> 8080
+Handling connection for 8080
+```
