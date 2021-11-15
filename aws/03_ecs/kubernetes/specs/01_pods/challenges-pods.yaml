@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-challenges-provider
+  namespace: challenges-demo
+spec:
+  containers:
+    - name: app-challenges-provider-container
+      image: application/challenges-provider:latest
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 8080
+      env:
+        - name: PROVIDER_TYPE
+          value: "docker"
+        - name: EUREKA_CLIENT_ENABLED
+          value: "false"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-provider-math
+  namespace: challenges-demo
+spec:
+  containers:
+    - name: app-challenges-provider-math-container
+      image: application/provider-math:latest
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 8080
+      env:
+        - name: EUREKA_CLIENT_ENABLED
+          value: "false"
+        - name: SERVER_PORT
+          value: "8080"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-provider-history
+  namespace: challenges-demo
+spec:
+  containers:
+    - name: app-challenges-provider-history-container
+      image: application/provider-history:latest
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 8080
+      env:
+        - name: EUREKA_CLIENT_ENABLED
+          value: "false"
+        - name: SERVER_PORT
+          value: "8080"
