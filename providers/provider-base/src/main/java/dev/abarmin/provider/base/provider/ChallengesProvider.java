@@ -11,4 +11,6 @@ public interface ChallengesProvider {
    * @return a collection of challenges.
    */
   Collection<Challenge> provide(int number);
+
+  Integer count();
 }

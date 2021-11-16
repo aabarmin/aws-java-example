@@ -30,6 +30,11 @@ public class ChallengesClasspathProvider implements ChallengesProvider {
   }
 
   @Override
+  public Integer count() {
+    return challenges.size();
+  }
+
+  @Override
   public Collection<Challenge> provide(int number) {
     if (number > challenges.size()) {
       throw new IllegalArgumentException(String.format(

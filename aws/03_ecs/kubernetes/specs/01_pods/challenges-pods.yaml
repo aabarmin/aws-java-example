@@ -51,6 +51,14 @@ spec:
               value: "false"
             - name: SERVER_PORT
               value: "8080"
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
 ---
 apiVersion: apps/v1
 kind: Deployment
