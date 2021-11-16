@@ -1,0 +1,42 @@
+{
+  "family": "app-provider-math",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [{
+    "name": "app-provider-math-container",
+    "image": "835357144480.dkr.ecr.us-east-1.amazonaws.com/app-provider-math:latest",
+    "portMappings": [{
+      "containerPort": 8080,
+      "hostPort": 8080,
+      "protocol": "tcp"
+    }],
+    "environment": [
+      {
+        "name": "PROVIDER_TYPE",
+        "value": "docker"
+      },
+      {
+        "name": "EUREKA_CLIENT_ENABLED",
+        "value": "false"
+      },
+      {
+        "name": "SERVER_PORT",
+        "value": "8080"
+      }
+    ],
+    "essential": true,
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-create-group": "true",
+        "awslogs-group": "/ecs/app-provider-math",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}

@@ -29,3 +29,25 @@ aws ecs create-service \
     --platform-version LATEST \
     --network-configuration ${NETWORK_CONFIG} \
     --load-balancers ${LOAD_BALANCER}
+
+TASK_NAME=$(ecs_get_task_definition app-provider-math)
+
+aws ecs create-service \
+    --cluster challenges-application \
+    --service-name app-provider-math \
+    --task-definition ${TASK_NAME} \
+    --desired-count 1 \
+    --launch-type FARGATE \
+    --platform-version LATEST \
+    --network-configuration ${NETWORK_CONFIG}
+
+TASK_NAME=$(ecs_get_task_definition app-provider-history)
+
+aws ecs create-service \
+    --cluster challenges-application \
+    --service-name app-provider-history \
+    --task-definition ${TASK_NAME} \
+    --desired-count 1 \
+    --launch-type FARGATE \
+    --platform-version LATEST \
+    --network-configuration ${NETWORK_CONFIG}

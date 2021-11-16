@@ -6,3 +6,11 @@ ROLE_ARN=$(aws iam list-roles --query 'Roles[?RoleName==`fargate_role`].Arn' --o
 aws ecs register-task-definition --cli-input-json file://app-challenges-provider.json \
   --execution-role-arn ${ROLE_ARN} \
   --task-role-arn ${ROLE_ARN}
+
+aws ecs register-task-definition --cli-input-json file://app-provider-math.json \
+  --execution-role-arn ${ROLE_ARN} \
+  --task-role-arn ${ROLE_ARN}
+
+aws ecs register-task-definition --cli-input-json file://app-provider-history.json \
+  --execution-role-arn ${ROLE_ARN} \
+  --task-role-arn ${ROLE_ARN}

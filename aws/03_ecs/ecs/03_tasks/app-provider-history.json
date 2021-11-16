@@ -1,0 +1,42 @@
+{
+  "family": "app-provider-history",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [{
+    "name": "app-provider-history-container",
+    "image": "835357144480.dkr.ecr.us-east-1.amazonaws.com/app-provider-history:latest",
+    "portMappings": [{
+      "containerPort": 8080,
+      "hostPort": 8080,
+      "protocol": "tcp"
+    }],
+    "environment": [
+      {
+        "name": "PROVIDER_TYPE",
+        "value": "docker"
+      },
+      {
+        "name": "EUREKA_CLIENT_ENABLED",
+        "value": "false"
+      },
+      {
+        "name": "SERVER_PORT",
+        "value": "8080"
+      }
+    ],
+    "essential": true,
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-create-group": "true",
+        "awslogs-group": "/ecs/app-provider-history",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}
