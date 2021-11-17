@@ -16,6 +16,8 @@ public class ProviderConfiguration {
   public MeterBinder challengesCount(ChallengesProvider provider) {
     return registry ->
         Gauge.builder("challenges.count", provider::count)
+            .baseUnit("ITEM")
+            .description("Amount of challenges registered in the app")
             .register(registry);
   }
 }

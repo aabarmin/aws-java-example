@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.withType<BootBuildImage> {
-    imageName = "application/provider-history"
+    imageName = "application/provider-history:oci"
 }
 
 dependencies {

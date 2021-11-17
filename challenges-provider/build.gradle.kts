@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.withType<BootBuildImage> {
-    imageName = "application/challenges-provider"
+    imageName = "application/challenges-provider:oci"
 }
 
 dependencies {

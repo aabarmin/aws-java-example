@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.withType<BootBuildImage> {
-    imageName = "application/provider-math"
+    imageName = "application/provider-math:oci"
 }
 
 dependencies {

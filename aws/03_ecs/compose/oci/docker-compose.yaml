@@ -2,23 +2,23 @@ version: '2.4'
 
 services:
   service-discovery:
-    image: application/service-discovery:latest
+    image: application/service-discovery:oci
     ports:
       - 8888:8888
 
   challenges-provider:
-    image: application/challenges-provider:latest
+    image: application/challenges-provider:oci
     environment:
       DISCOVERY_URL: http://service-discovery:8888/eureka/
     ports:
       - 80:8080
 
   provider-math:
-    image: application/provider-math:latest
+    image: application/provider-math:oci
     environment:
       DISCOVERY_URL: http://service-discovery:8888/eureka/
 
   provider-history:
-    image: application/provider-history:latest
+    image: application/provider-history:oci
     environment:
       DISCOVERY_URL: http://service-discovery:8888/eureka/

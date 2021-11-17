@@ -5,7 +5,7 @@ metadata:
   namespace: challenges-demo
 spec:
   selector:
-    name: frontend
+    name: challenges-provider
   type: LoadBalancer
   ports:
     - port: 8080

@@ -18,7 +18,8 @@ function build() {
 
   docker build -f ./aws/03_ecs/docker/layered/Dockerfile \
     --build-arg JAR_FOLDER=${FOLDER}/build/libs \
-    -t ${NAME}:latest .
+    -t ${NAME}:latest \
+    -t ${NAME}:layered .
 }
 
 # Building the app

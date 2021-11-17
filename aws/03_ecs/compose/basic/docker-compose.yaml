@@ -2,27 +2,25 @@ version: '2.4'
 
 services:
   service-discovery:
-    image: application/service-discovery:latest
+    image: application/service-discovery:naive
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
-    ports:
-      - 8888:8888
 
   challenges-provider:
-    image: application/challenges-provider:latest
+    image: application/challenges-provider:naive
     depends_on:
       service-discovery:
         condition: service_healthy
     environment:
       DISCOVERY_URL: http://service-discovery:8888/eureka/
     ports:
-      - 80:8080
+      - 8080:8080
 
   provider-math:
-    image: application/provider-math:latest
+    image: application/provider-math:naive
     environment:
       DISCOVERY_URL: http://service-discovery:8888/eureka/
     depends_on:
@@ -30,7 +28,7 @@ services:
         condition: service_healthy
 
   provider-history:
-    image: application/provider-history:latest
+    image: application/provider-history:naive
     environment:
       DISCOVERY_URL: http://service-discovery:8888/eureka/
     depends_on:

@@ -13,7 +13,7 @@ public class CustomHealthIndicator implements HealthIndicator {
     final int nextValue = ThreadLocalRandom.current().nextInt(2);
     if (nextValue == 0) {
       return Health.down()
-          .status("Invalid status of the Moon")
+          .status("Invalid phase of the Moon")
           .build();
     }
     return Health.up().build();

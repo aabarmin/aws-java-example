@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: challenges-provider
+  name: challenges-provider-deployment
   namespace: challenges-demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: frontend
+      name: challenges-provider
   template:
     metadata:
       labels:
-        name: frontend
+        name: challenges-provider
     spec:
       containers:
-        - name: app-challenges-provider-container
+        - name: challenges-provider-container
           image: application/challenges-provider:latest
           imagePullPolicy: Never
           ports:
@@ -28,7 +28,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-math
+  name: backend-math-deployment
   namespace: challenges-demo
 spec:
   replicas: 1
@@ -41,7 +41,7 @@ spec:
         name: backend-math
     spec:
       containers:
-        - name: app-challenges-provider-math-container
+        - name: challenges-provider-math-container
           image: application/provider-math:latest
           imagePullPolicy: Never
           ports:
@@ -63,7 +63,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-history
+  name: backend-history-deployment
   namespace: challenges-demo
 spec:
   replicas: 1
@@ -76,7 +76,7 @@ spec:
         name: backend-history
     spec:
       containers:
-        - name: app-challenges-provider-history-container
+        - name: challenges-provider-history-container
           image: application/provider-history:latest
           imagePullPolicy: Never
           ports:
